@@ -1,0 +1,37 @@
+PKG libxslt libxml2 postgresql-libpqxx yarn-node16 autoconf nginx git-lite readline libyaml lzlib ruby rubygem-bundler libidn redis gmake acme.sh bash py39-supervisor
+
+ARG EMAIL
+ARG DOMAIN
+ARG PASSWORD
+
+
+
+# Get Certificate from Let's Encrypt  
+CMD acme.sh --home /var/db/acme.sh --register-account -m ${EMAIL} --server letsencrypt
+CMD acme.sh --home /var/db/acme.sh --issue --standalone -d ${DOMAIN} --listen-v6 --server letsencrypt
+
+# IPv4
+#CMD acme.sh --home /var/db/acme.sh --issue --standalone -d ${DOMAIN} --listen-v4
+
+CMD mkdir -p /usr/local/etc/ssl/letsencrypt/${DOMAIN}
+CMD acme.sh --home /var/db/acme.sh --install-cert -d ${DOMAIN} --fullchain-file /usr/local/etc/ssl/letsencrypt/${DOMAIN}/fullchain.pem --key-file /usr/local/etc/ssl/letsencrypt/${DOMAIN}/privkey.pem
+CMD echo '0       0       *       *       *       root    acme.sh --cron --home "/var/db/acme.sh" > /dev/null' >> /etc/crontab
+
+# Bootstrap Application
+CMD pw useradd -n mastodon -m -s /usr/local/bin/bash
+CMD su mastodon -c "git clone https://github.com/mastodon/mastodon.git /home/mastodon/live" 
+CMD su mastodon -c "cd /home/mastodon/live && git checkout $(git tag -l | grep -v 'rc[0-9]*$' | sort -V | tail -n 1)"
+CMD su mastodon -c "cd /home/mastodon/live && bundle config deployment 'true'"
+CMD su mastodon -c "cd /home/mastodon/live && bundle config without 'development test'"
+CMD su mastodon -c "cd /home/mastodon/live && bundle install -j$(getconf _NPROCESSORS_ONLN)"
+CMD su mastodon -c "cd /home/mastodon/live && yarn install --pure-lockfile --ignore-platform"
+
+# Copy and Render configurations 
+CP usr /
+RENDER /usr/local/etc/nginx/mastodon.conf
+
+SYSRC supervisord_enable="YES"
+SYSRC nginx_enable="YES"
+
+SERVICE supervisord start
+SERVICE nginx start
