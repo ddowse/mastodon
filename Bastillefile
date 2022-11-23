@@ -1,10 +1,7 @@
-PKG libxslt libxml2 postgresql-libpqxx yarn-node16 autoconf nginx git-lite readline libyaml lzlib ruby rubygem-bundler libidn redis gmake acme.sh bash py39-supervisor
+PKG libxslt libxml2 postgresql-libpqxx yarn-node16 autoconf nginx git-lite readline libyaml lzlib ruby rubygem-bundler libidn redis gmake acme.sh bash py39-supervisor ImageMagick7-nox11
 
 ARG EMAIL
-ARG DOMAIN
 ARG PASSWORD
-
-
 
 # Get Certificate from Let's Encrypt  
 CMD acme.sh --home /var/db/acme.sh --register-account -m ${EMAIL} --server letsencrypt
@@ -35,3 +32,8 @@ SYSRC nginx_enable="YES"
 
 SERVICE supervisord start
 SERVICE nginx start
+
+# Run the interactive setup wizard in 5 seconds 
+CMD su mastodon -c "cd /home/mastodon/live && RAILS_ENV=production bundle exec rake mastodon:setup"
+
+
