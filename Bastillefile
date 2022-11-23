@@ -28,8 +28,10 @@ CP usr /
 RENDER /usr/local/etc/nginx/mastodon.conf
 
 SYSRC supervisord_enable="YES"
+SYSRC redis_enable="YES"
 SYSRC nginx_enable="YES"
 
+SERVICE redis start
 SERVICE supervisord start
 SERVICE nginx start
 
