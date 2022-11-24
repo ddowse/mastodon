@@ -1,4 +1,4 @@
-# WIP !
+# WIP ! (Work in Progress)
 
 # Mastodon
 
