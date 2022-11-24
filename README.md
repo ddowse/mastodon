@@ -1,3 +1,5 @@
+# WIP !
+
 # Mastodon
 
 This is a [BastilleBSD](https://bastillebsd.org) template to install [Mastodon](https://joinmastodon.org) on your Server. 
