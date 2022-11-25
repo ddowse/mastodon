@@ -1,0 +1,37 @@
+#!/bin/sh
+# $FreeBSD$
+# PROVIDE: mastodon_streaming
+# REQUIRE: DAEMON postgresql
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+name="mastodon_streaming"
+start_cmd="start"
+stop_cmd="stop"
+rcvar=mastodon_streaming_enable
+
+pidfile="/var/run/${name}.pid"
+
+desc="Mastodon Streaming Service"
+
+load_rc_config ${name}
+
+start() {
+
+/bin/mkdir -p /var/run/mastodon
+/usr/sbin/chown mastodon:mastodon /var/run/mastodon
+
+/usr/bin/su mastodon -c "export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:~/bin && export NODE_ENV=production && export PORT=4000 && export STREAMING_CLUSTER_NUM=1 && cd /home/mastodon/live && /usr/sbin/daemon -T ${name} -P /var/run/mastodon/${name}_supervisor.pid -p  /var/run/mastodon/${name}.pid -f -S -r /usr/local/bin/node ./streaming"
+
+}
+
+stop() {
+
+/bin/kill -9 `cat /var/run/mastodon/${name}_supervisor.pid`
+/bin/kill -15 `cat /var/run/mastodon/${name}.pid`
+
+
+}
+
+run_rc_command "$1"

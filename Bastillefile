@@ -1,7 +1,9 @@
-PKG libxslt libxml2 postgresql-libpqxx yarn-node16 autoconf nginx git-lite readline libyaml lzlib ruby rubygem-bundler libidn redis gmake acme.sh bash py39-supervisor ImageMagick7-nox11
 
 ARG EMAIL
 ARG DOMAIN
+ARG WITH_REDIS
+
+PKG libxslt libxml2 postgresql-libpqxx yarn-node16 autoconf nginx git-lite readline libyaml lzlib ruby rubygem-bundler libidn gmake acme.sh bash ImageMagick7-nox11
 
 # Get Certificate from Let's Encrypt  
 CMD acme.sh --home /var/db/acme.sh --register-account -m ${EMAIL} --server letsencrypt
@@ -12,10 +14,17 @@ CMD acme.sh --home /var/db/acme.sh --issue --standalone -d ${DOMAIN} --listen-v6
 
 CMD mkdir -p /usr/local/etc/ssl/letsencrypt/${DOMAIN}
 CMD acme.sh --home /var/db/acme.sh --install-cert -d ${DOMAIN} --fullchain-file /usr/local/etc/ssl/letsencrypt/${DOMAIN}/fullchain.pem --key-file /usr/local/etc/ssl/letsencrypt/${DOMAIN}/privkey.pem
-CMD echo '0       0       *       *       *       root    acme.sh --cron --home "/var/db/acme.sh" > /dev/null' >> /etc/crontab
+CMD echo '0       0       *       *       *       root    acme.sh --cron --home "/var/db/acme.sh" --reloadcmd "service nginx restart" > /dev/null' >> /etc/crontab
+
+# Copy and Render configurations 
+CP usr /
+RENDER /usr/local/etc/nginx/mastodon.conf
+
+# Redis disable protected-mode 
+CMD if [ -n "${WITH_REDIS}" ]; then pkg install redis; sed -i '' -e 's/protected-mode yes/protected-mode no/' /usr/local/etc/redis.conf; service redis enable; service redis start; fi
 
 # Bootstrap Application
-CMD pw useradd -n mastodon -m -s /usr/local/bin/bash
+CMD pw useradd -n mastodon -m -G redis -s /usr/local/bin/bash
 CMD su mastodon -c "git clone https://github.com/mastodon/mastodon.git /home/mastodon/live" 
 CMD su mastodon -c "cd /home/mastodon/live && git checkout $(git tag -l | grep -v 'rc[0-9]*$' | sort -V | tail -n 1)"
 CMD su mastodon -c "cd /home/mastodon/live && bundle config deployment 'true'"
@@ -23,19 +32,16 @@ CMD su mastodon -c "cd /home/mastodon/live && bundle config without 'development
 CMD su mastodon -c "cd /home/mastodon/live && bundle install -j$(getconf _NPROCESSORS_ONLN)"
 CMD su mastodon -c "cd /home/mastodon/live && yarn install --pure-lockfile --ignore-platform"
 
-# Copy and Render configurations 
-CP usr /
-RENDER /usr/local/etc/nginx/mastodon.conf
-
-SYSRC supervisord_enable="YES"
-SYSRC redis_enable="YES"
+# Enable all services
 SYSRC nginx_enable="YES"
+SYSRC mastodon_web="YES"
+SYSRC masodon_sidekiq="YES"
+SYSRC mastodon_streaming="YES"
 
-SERVICE redis start
-SERVICE supervisord start
 SERVICE nginx start
+SERVICE mastodon_web start
+SERVICE masodon_sidekiq start
+SERVICE mastodon_streaming start
 
-# Run the interactive setup wizard in 5 seconds 
+# Run the interactive setup wizard 
 CMD su mastodon -c "cd /home/mastodon/live && RAILS_ENV=production bundle exec rake mastodon:setup"
-
-

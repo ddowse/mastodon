@@ -5,6 +5,9 @@
 This is a [BastilleBSD](https://bastillebsd.org) template to install [Mastodon](https://joinmastodon.org) on your Server. 
 Find out more about *BastilleBSD* by reading the [documentation](https://bastille.readthedocs.io/en/latest/) about it. 
 
+A good tutorial how to install Mastodon on FreeBSD by hand you should have a look at [Installing Mastodon inside a FreeBSD jail](https://it-notes.dragas.net/2022/11/23/installing-mastodon-on-a-freebsd-jail/).
+The ```rc(8)``` scripts needed to start the services at boottime are taken from Stefano Marinelli's fine tutorial. 
+
 # Prerequisite (Software)
 
 You will need access to a [PostgreSQL](https://www.postgresql.org) Server. 
@@ -48,5 +51,5 @@ In case something goes wrong you can easily rollback.
 Read more about ZFS snapshots on the FreeBSD [Documentation](https://docs.freebsd.org/en/books/handbook/zfs/#zfs-term-snapshot)
 
 ```sh
-bastille template TARGET ddowse/mastodon --arg DOMAIN=mastodon.example.org --arg EMAIL=mailbox@example.org
+bastille template TARGET ddowse/mastodon --arg DOMAIN=mastodon.example.org --arg EMAIL=mailbox@example.org --arg WITH_REDIS
 ```
