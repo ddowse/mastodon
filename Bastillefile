@@ -38,10 +38,10 @@ SYSRC mastodon_web="YES"
 SYSRC masodon_sidekiq="YES"
 SYSRC mastodon_streaming="YES"
 
+# Run the interactive setup wizard 
+# CMD su mastodon -c "cd /home/mastodon/live && RAILS_ENV=production bundle exec rake mastodon:setup"
+
 SERVICE nginx start
 SERVICE mastodon_web start
 SERVICE masodon_sidekiq start
 SERVICE mastodon_streaming start
-
-# Run the interactive setup wizard 
-CMD su mastodon -c "cd /home/mastodon/live && RAILS_ENV=production bundle exec rake mastodon:setup"
