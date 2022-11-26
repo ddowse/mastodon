@@ -1,5 +1,3 @@
-# WIP ! (Work in Progress)
-
 # Mastodon
 
 This is a [BastilleBSD](https://bastillebsd.org) template to install [Mastodon](https://joinmastodon.org) on your Server. 
@@ -7,6 +5,16 @@ Find out more about *BastilleBSD* by reading the [documentation](https://bastill
 
 A good tutorial how to install Mastodon on FreeBSD by hand you should have a look at [Installing Mastodon inside a FreeBSD jail](https://it-notes.dragas.net/2022/11/23/installing-mastodon-on-a-freebsd-jail/).
 The ```rc(8)``` scripts needed to start the services at boottime are taken from Stefano Marinelli's fine tutorial. 
+
+```sh
+bastille bootstrap https://codeberg.org/ddowse/mastodon
+```
+
+```sh
+bastille template TARGET ddowse/mastodon --arg DOMAIN=mastodon.example.org --arg EMAIL=mailbox@example.org 
+```
+
+# Detailed beginners description
 
 # Prerequisite (Software)
 
@@ -37,8 +45,12 @@ bastille cmd postgres sh -c 'echo "host    mastodon        mastodon        10.0.
 ```
 
 Furthermore [Mastodon](https://joinmastodon.org/) depends on having [Redis](https://redis.io/) ready.
-On default the Redis Server Package is bundled with this Jail (Container).
- 
+On default the Redis Server Package is bundled with this Jail (Container) running in *unprotected mode*
+
+In the mastodon setup process enter the jails IP instead of localhost, read the ```Bastillefile``` for more information.
+
+Make sure Port 80/443 are open. Port 80 is only needed to get a TLS certificate from Let's Encrypt.
+
 # Bootstrap 
 
 ```sh
