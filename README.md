@@ -1,10 +1,10 @@
 # Mastodon
 
-This is a [BastilleBSD](https://bastillebsd.org) template to install [Mastodon](https://joinmastodon.org) on your Server. 
-Find out more about *BastilleBSD* by reading the [documentation](https://bastille.readthedocs.io/en/latest/) about it. 
+This is a [BastilleBSD](https://bastillebsd.org) template to bootstrap [Mastodon](https://joinmastodon.org) in a FreeBSD jail. Find out more about *BastilleBSD* by reading the [documentation](https://bastille.readthedocs.io/en/latest/).
 
-A good tutorial how to install Mastodon on FreeBSD by hand you should have a look at [Installing Mastodon inside a FreeBSD jail](https://it-notes.dragas.net/2022/11/23/installing-mastodon-on-a-freebsd-jail/).
-The ```rc(8)``` scripts needed to start the services at boottime are taken from Stefano Marinelli's fine tutorial. 
+A tutorial how to install Mastodon on FreeBSD can be found in Stefano Marinelli's Website [Installing Mastodon inside a FreeBSD jail](https://it-notes.dragas.net/2022/11/23/installing-mastodon-on-a-freebsd-jail/).
+
+The ```rc(8)``` scripts needed to start the services at boottime are taken from Stefano Marinelli's fine tutorial. Kudos!
 
 ```sh
 bastille bootstrap https://codeberg.org/ddowse/mastodon
@@ -14,9 +14,12 @@ bastille bootstrap https://codeberg.org/ddowse/mastodon
 bastille template TARGET ddowse/mastodon --arg DOMAIN=mastodon.example.org --arg EMAIL=mailbox@example.org 
 ```
 
-# Detailed beginners description
+
+# Detailed beginners description   
 
 # Prerequisite (Software)
+
+## PostgreSQL
 
 You will need access to a [PostgreSQL](https://www.postgresql.org) Server. 
 
@@ -25,7 +28,7 @@ Documentation [here](https://docs.joinmastodon.org/admin/install/#setting-up-pos
 
 Add a new entry to your ```pg_hba.conf```
 
-#### Example 
+#### Example! 
 ```sh
 host    mastodon        mastodon        10.0.0.10/32            trust
 ```    
@@ -34,7 +37,7 @@ host    mastodon        mastodon        10.0.0.10/32            trust
 In case you don't have a running PostgreSQL then just create a new Jail and bootstrap this 
 [yaazkal/bastille-postgres](https://github.com/yaazkal/bastille-postgres) BastilleBSD template.
 
-#### Example: 
+#### Example! 
 
 ```sh
 bastille create postges 13.1-RELEASE 10.0.0.10
@@ -43,13 +46,15 @@ bastille template yaazkal/bastille-postgres
 bastille cmd postgres su - postgres -c "psql -c 'CREATE USER mastodon CREATEDB;'"
 bastille cmd postgres sh -c 'echo "host    mastodon        mastodon        10.0.0.10/32            trust" >> /var/db/postgres/data14/pg_hba.conf'
 ```
+## Redis
 
-Furthermore [Mastodon](https://joinmastodon.org/) depends on having [Redis](https://redis.io/) ready.
-On default the Redis Server Package is bundled with this Jail (Container) running in *unprotected mode*
+Mastodon needs access to a [Redis](https://redis.io/) server. Redis Server is installed as a dependency anyway so to simplify things for beginners the *redis* daemon will run in *unprotected mode*. Please check the ```Bastillefile``` for more details. 
 
-In the mastodon setup process enter the jails IP instead of localhost, read the ```Bastillefile``` for more information.
+In the mastodon setup process enter the jails IP instead of localhost.
 
-Make sure Port 80/443 are open. Port 80 is only needed to get a TLS certificate from Let's Encrypt.
+## TLS certificate
+
+Make sure ```Port 80/443``` are open. Port 80 is only needed to get a TLS certificate from [Let's Encrypt](https://letsencrypt.org).
 
 # Bootstrap 
 
@@ -63,5 +68,5 @@ In case something goes wrong you can easily rollback.
 Read more about ZFS snapshots on the FreeBSD [Documentation](https://docs.freebsd.org/en/books/handbook/zfs/#zfs-term-snapshot)
 
 ```sh
-bastille template TARGET ddowse/mastodon --arg DOMAIN=mastodon.example.org --arg EMAIL=mailbox@example.org --arg WITH_REDIS
+bastille template TARGET ddowse/mastodon --arg DOMAIN=mastodon.example.org --arg EMAIL=mailbox@example.org
 ```
