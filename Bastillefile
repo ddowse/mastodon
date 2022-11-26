@@ -1,9 +1,7 @@
-
 ARG EMAIL
 ARG DOMAIN
-ARG WITH_REDIS
 
-PKG libxslt libxml2 postgresql-libpqxx yarn-node16 autoconf nginx git-lite readline libyaml lzlib ruby rubygem-bundler libidn gmake acme.sh bash ImageMagick7-nox11
+PKG libxslt libxml2 postgresql-libpqxx yarn-node16 autoconf nginx git-lite readline libyaml lzlib ruby rubygem-bundler libidn gmake acme.sh bash ImageMagick7-nox11 npm redis
 
 # Get Certificate from Let's Encrypt  
 CMD acme.sh --home /var/db/acme.sh --register-account -m ${EMAIL} --server letsencrypt
@@ -20,26 +18,52 @@ CMD echo '0       0       *       *       *       root    acme.sh --cron --home 
 CP usr /
 RENDER /usr/local/etc/nginx/mastodon.conf
 
-# Redis disable protected-mode 
-CMD if [ -n "${WITH_REDIS}" ]; then pkg install redis; sed -i '' -e 's/protected-mode yes/protected-mode no/' /usr/local/etc/redis.conf; service redis enable; service redis start; fi
+# XXX Redis disable protected-mode 
+# Should be better to use a socket, but currently the mastadon:setup process
+# does not allow to set one. You can do it afterwards:
+# Add user 'mastodon' to the group "redis"
+# pw usermod -n mastdodon -G redis
+# Open /usr/local/etc/redis.conf
+# Add
+# unixsocket /var/run/redis/redis.sock
+# unixsocketperm 770
+# Add REDIS_URL=unix:///var/run/redis/redis.sock to your .env.production file.
+# Comment REDIS_PORT line
+# Restart jail
+
+CMD sed -i '' -e 's/protected-mode yes/protected-mode no/' /usr/local/etc/redis.conf
+
+SYSRC redis_enable="YES"
+SERVICE redis start
+
 
 # Bootstrap Application
-CMD pw useradd -n mastodon -m -G redis -s /usr/local/bin/bash
+CMD pw useradd -n mastodon -m
+
+CMD corepack enable
+CMD yarn set version classic
+
+#XXX Install missing node program not available via ports/pkgs
+CMD yarn add node-gyp
+
+CMD su - mastodon -c "yarn set version classic"
+
+# Mastodon Setup Begin
 CMD su mastodon -c "git clone https://github.com/mastodon/mastodon.git /home/mastodon/live" 
-CMD su mastodon -c "cd /home/mastodon/live && git checkout $(git tag -l | grep -v 'rc[0-9]*$' | sort -V | tail -n 1)"
+CMD su mastodon -c "git -C /home/mastodon/live checkout $( su mastodon -c "git -C /usr/home/mastodon/live tag -l | grep -v 'rc[0-9]*$' | sort -V | tail -n 1" )"
 CMD su mastodon -c "cd /home/mastodon/live && bundle config deployment 'true'"
 CMD su mastodon -c "cd /home/mastodon/live && bundle config without 'development test'"
 CMD su mastodon -c "cd /home/mastodon/live && bundle install -j$(getconf _NPROCESSORS_ONLN)"
 CMD su mastodon -c "cd /home/mastodon/live && yarn install --pure-lockfile --ignore-platform"
+
+# Run the interactive setup wizard 
+CMD su mastodon -c "cd /home/mastodon/live && RAILS_ENV=production bundle exec rake mastodon:setup"
 
 # Enable all services
 SYSRC nginx_enable="YES"
 SYSRC mastodon_web="YES"
 SYSRC masodon_sidekiq="YES"
 SYSRC mastodon_streaming="YES"
-
-# Run the interactive setup wizard 
-# CMD su mastodon -c "cd /home/mastodon/live && RAILS_ENV=production bundle exec rake mastodon:setup"
 
 SERVICE nginx start
 SERVICE mastodon_web start
