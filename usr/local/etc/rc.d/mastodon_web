@@ -1,15 +1,15 @@
 #!/bin/sh
 # $FreeBSD$
-# PROVIDE: mastodon_web
+# PROVIDE: mastodon-web
 # REQUIRE: DAEMON nginx
 # KEYWORD: shutdown
 
 . /etc/rc.subr
 
-name="mastodon_web"
+name="mastodon-web"
 start_cmd="start"
 stop_cmd="stop"
-rcvar=mastodon_web_enable
+rcvar=mastodon-web_enable
 
 pidfile="/var/run/${name}.pid"
 

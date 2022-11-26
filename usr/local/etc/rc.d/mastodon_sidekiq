@@ -1,15 +1,15 @@
 #!/bin/sh
 # $FreeBSD$
-# PROVIDE: mastodon_sidekiq
+# PROVIDE: mastodon-sidekiq
 # REQUIRE: DAEMON nginx
 # KEYWORD: shutdown
 
 . /etc/rc.subr
 
-name="mastodon_sidekiq"
+name="mastodon-sidekiq"
 start_cmd="start"
 stop_cmd="stop"
-rcvar=mastodon_sidekiq_enable
+rcvar=mastodon-sidekiq_enable
 
 pidfile="/var/run/${name}.pid"
 
@@ -22,7 +22,7 @@ start() {
 /bin/mkdir -p /var/run/mastodon
 /usr/sbin/chown mastodon:mastodon /var/run/mastodon
 
-/usr/bin/su mastodon -c "export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:~/bin && export RAILS_ENV=production && export DB_POOL=25 && export MALLOC_ARENA_MAX=2 && cd /home/mastodon/live && /usr/sbin/daemon -T ${name} -P /var/run/mastodon/${name}_supervisor.pid -p  /var/run/mastodon/${name}.pid -f -S -r /usr/local/bin/bundle exec sidekiq -c 25"
+/usr/bin/su mastodon -c "export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:~/bin && export RAILS_ENV=production && export DB_POOL=25 && export MALLOC_ARENA_MAX=2 && cd /home/mastodon/live && /usr/sbin/daemon -T ${name} -P /var/run/mastodon/${name}_supervisor.pid -p  /var/run/mastodon/${name}.pid -f -S -r /usr/local/bin/bundle exec sidekiq -c 25 -C /home/mastodon/live/config/sidekiq.yml"
 
 }
 

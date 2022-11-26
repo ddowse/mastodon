@@ -1,15 +1,15 @@
 #!/bin/sh
 # $FreeBSD$
-# PROVIDE: mastodon_streaming
-# REQUIRE: DAEMON postgresql
+# PROVIDE: mastodon-streaming
+# REQUIRE: DAEMON nginx
 # KEYWORD: shutdown
 
 . /etc/rc.subr
 
-name="mastodon_streaming"
+name="mastodon-streaming"
 start_cmd="start"
 stop_cmd="stop"
-rcvar=mastodon_streaming_enable
+rcvar=mastodon-streaming_enable
 
 pidfile="/var/run/${name}.pid"
 

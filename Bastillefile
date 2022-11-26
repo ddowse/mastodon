@@ -61,11 +61,11 @@ CMD su mastodon -c "cd /home/mastodon/live && RAILS_ENV=production bundle exec r
 
 # Enable all services
 SYSRC nginx_enable="YES"
-SYSRC mastodon_web="YES"
-SYSRC masodon_sidekiq="YES"
-SYSRC mastodon_streaming="YES"
+SYSRC mastodon-web_enable="YES"
+SYSRC masodon-sidekiq_enable="YES"
+SYSRC mastodon-streaming_enable="YES"
 
 SERVICE nginx start
-SERVICE mastodon_web start
-SERVICE masodon_sidekiq start
-SERVICE mastodon_streaming start
+SERVICE mastodon-web start
+SERVICE mastodon-sidekiq start
+SERVICE mastodon-streaming start
